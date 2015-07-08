@@ -1,4 +1,5 @@
 from django.views.generic.base import RedirectView
+from braces.views import LoginRequiredMixin
 
 import mechanize
 from cryptography.fernet import Fernet
@@ -8,16 +9,23 @@ from saas.fernet import FERNET_KEY
 
 
 
-class AddToCartDavidson(RedirectView):
-    
+class AddToCartDavidson(LoginRequiredMixin, RedirectView):
+
+    #Aquire Davidson's username
     user = UserProfile.objects.get(user=request.user.id)
     username = user.davidson_login
-    product = Product.objects.get(id=request.GET.get('product_id'))
-    upc = product.upc
-    
+
+    #Decrypt Davidson's password
     fernet = Fernet(FERNET_KEY)
     password = fernet.decrypt(user.davidson_password)
+
+    #Product upc will be used to navigate to proper page once logged in
+    product = Product.objects.get(id=request.GET.get('product_id'))
+    upc = product.upc 
+
     
+
+    #Instantiate mechanize browser and login to Davidson's
     br=mechanize.Browser()
     br.set_handle_robots(False)
     br.addheaders = [
@@ -33,6 +41,7 @@ class AddToCartDavidson(RedirectView):
     
     permanent = False
 
+    #Redirect to specific Davidson's product page using upc
     def get_redirect_url(self, *args, **kwargs):
         self.url = 'http://www11.davidsonsinc.com/Dealers/ItemDetail.aspx?sid=%s' % upc
         return super(AddToCartDavidson,
