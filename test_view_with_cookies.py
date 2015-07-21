@@ -53,7 +53,7 @@ def AddToCartDavidson(request):
     
     response = redirect(product_page)
 
-    Inject cookies into response object
+##    Inject cookies into response object
     for cookie in cj:
         name = cookie.name
         if name != 'ASP.NET_SessionId' and name != '.ASPXAUTH':
